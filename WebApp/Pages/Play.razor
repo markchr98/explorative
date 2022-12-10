@@ -1,0 +1,120 @@
+@page "/play"
+@inject IJSRuntime js
+
+<PageTitle>Play</PageTitle>
+
+<div class="fs-container">
+  <div class="game">
+    <img src="@currentZone.ImageUrl" draggable="false" width="@(currentZone.Width * currentScale)" height="@(currentZone.Height * currentScale)"
+      @onmousedown="e => ActivateDrag(true, e)" @onmouseup="e => ActivateDrag(false, e)" @onmousemove="e => Drag(e)" @onmousewheel="Scale"
+      @onmouseout="e => ActivateDrag(false, e)" Style="@($"top: {currentOffsetString.Y}px; left: {currentOffsetString.X}px")"
+      class="map @(isDraggable ? "dragging" : null)">
+
+  </div>
+</div>
+
+@code
+{
+
+  private bool isDraggable = false;
+  private Position currentOffset;
+  private (string X, string Y) currentOffsetString;
+  private Position dragStart;
+  private Position oldClient;
+  private Zone currentZone;
+
+  private WindowSize windowSize;
+  private double currentScale = 1;
+
+  protected override async Task OnInitializedAsync()
+  {
+    currentOffset = new Position();
+    dragStart = new Position();
+    currentOffsetString = (string.Empty, string.Empty);
+    currentZone = new Zone() { ImageUrl = "images/longdalemap.jpg", Width = 3500, Height = 4375, Scale = 1.2 };
+    windowSize = await js.InvokeAsync<WindowSize>("getDimensions");
+    currentScale = currentZone.Scale;
+  }
+
+  private void ActivateDrag(bool drag, MouseEventArgs e)
+  {
+    isDraggable = drag;
+    dragStart.X = (double)e.ClientX - currentOffset.X;
+    dragStart.Y = (double)e.ClientY - currentOffset.Y;
+  }
+
+  private void Drag(MouseEventArgs e)
+  {
+    if (isDraggable)
+    {
+      var x = (double)e.ClientX;
+      var y = (double)e.ClientY;
+      currentOffset.X = GetBounds(x - dragStart.X, 0, windowSize.Width - currentZone.Width * currentScale);
+      currentOffset.Y = GetBounds(y - dragStart.Y, 0, windowSize.Height - currentZone.Height * currentScale);
+      currentOffsetString.X = NoComma( currentOffset.X);
+      currentOffsetString.Y = NoComma( currentOffset.Y);
+    }
+  }
+
+  private void Scale(WheelEventArgs e) {
+    var prevScale = currentScale;
+    var scaleFactor = 0.05;
+    if (e.DeltaY > 0) {
+      currentScale = Math.Max(currentScale - scaleFactor, 0.75);
+    } else {
+      var a = Math.Min(currentZone.Width / windowSize.Width, currentZone.Height / windowSize.Height);
+      currentScale = Math.Min(currentScale + scaleFactor, a);
+    }
+    
+    @* do stuff here. 
+    var mouseEvent = new MouseEventArgs() {ClientX = e.ClientX, ClientY = e.ClientY};
+    var dx = (e.ClientX - currentOffset.X) * (factor - 1);
+    var dy = (e.ClientY - currentOffset.X) * (factor - 1);
+    currentOffset.X = GetBounds(-e.ClientX, 0, windowSize.Width - currentZone.Width * currentScale);
+    currentOffset.Y = GetBounds(-e.ClientY, 0, windowSize.Height - currentZone.Height * currentScale);
+    currentOffsetString.X = NoComma( currentOffset.X);
+    currentOffsetString.Y = NoComma( currentOffset.Y); *@
+  }
+
+  private double GetBounds(double value, double min, double max) {
+    return Math.Max(Math.Min(value, min), max);
+  }
+
+  private string NoComma(double value) {
+    Console.WriteLine("nocomma");
+    return value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+  }
+
+  private class WindowSize
+  {
+    public double Width { get; set; }
+    public double Height { get; set; }
+  }
+
+  private class Zone
+  {
+    public double Width { get; set; }
+    public double Height { get; set; }
+    public string? ImageUrl { get; set; }
+    public double Scale { get; set; }
+  }
+
+  private class Position
+  {
+    public double X { get; set; }
+    public double Y { get; set; }
+
+    public Position(double x, double y)
+    {
+      X = y;
+      Y = y;
+    }
+
+    public Position()
+    {
+      X = 0;
+      Y = 0;
+    }
+  }
+
+}

@@ -1,0 +1,39 @@
+.fs-container {
+  width: 100vw;
+  height: 100vh;
+  background-color: #1a1a1a;
+}
+
+.fs-container .circle {
+  width: 100%;
+  height: 100%;
+  /* background-image: radial-gradient(orange, #1a1a1a);
+    background-position: 0 80%;
+    background-repeat: no-repeat; */
+}
+
+.title-container {
+  text-align: center;
+  position: relative;
+  top: 20%;
+
+}
+
+.title-container h1 {
+  font-size: 4rem;
+  font-weight: 700;
+  color: black;
+}
+
+.play-button-container {
+  position: relative;
+  text-align: center;
+  top: 40%;
+}
+
+.play-button-container .btn-play {
+  padding: 1rem 2rem;
+  font-weight: 700;
+  background-color: grey;
+  box-shadow: black 1 1 1px;
+}
